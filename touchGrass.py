@@ -2,7 +2,6 @@ import logging
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 import asyncio
-import re
 
 # Set up logging to help with debugging
 logging.basicConfig(level=logging.INFO)
@@ -47,13 +46,10 @@ async def remind_most_active_user():
     user_id, first_name, message_count = get_most_active_user()
     total_messages = get_total_messages()
     if user_id:
-        # Prepare the reminder message
         reminder_message = (
             f"[{first_name}](tg://user?id={user_id}), you’ve sent {message_count} messages! "
             f"Out of the total {total_messages} messages sent in this group. Go touch grass! 🌱"
         )
-        # Escape special characters to avoid markdown issues
-        reminder_message = escape_markdown(reminder_message)
 
         # Check if the message length exceeds the limit (4096 characters)
         if len(reminder_message) > 4096:
@@ -86,11 +82,6 @@ async def remind_most_active_user():
     # Reset the message data after sending the reminder
     global group_message_data
     group_message_data = {}
-
-# Function to escape special characters in the markdown message
-def escape_markdown(text):
-    # Escape special characters for markdown formatting
-    return re.sub(r'([_\*[\]()~`>#+-=|{}.!])', r'\\\1', text)
 
 # Function to start the reminder every 1 minute
 async def start_reminder():
