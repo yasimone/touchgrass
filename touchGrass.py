@@ -11,7 +11,7 @@ API_ID = '1623073'  # Replace with your API ID
 API_HASH = 'a6f2f0a7b2022f8ca7717d9101c5ff5c'  # Replace with your API HASH
 TOKEN = '7311175407:AAFNuG40IGoaOXACRf0a0DfGJpqcqahRtcs'  # Replace with your Bot Token
 
-bot = Client("my_bot11", bot_token=TOKEN, api_id=API_ID, api_hash=API_HASH)
+bot = Client("my_bot", bot_token=TOKEN, api_id=API_ID, api_hash=API_HASH)
 
 # Group chat ID where the reminder system should work
 GROUP_CHAT_ID = -1001289294178  # Replace with the actual group chat ID
