@@ -11,7 +11,7 @@ API_ID = '1623073'  # Replace with your API ID
 API_HASH = 'a6f2f0a7b2022f8ca7717d9101c5ff5c'  # Replace with your API HASH
 TOKEN = '7311175407:AAFNuG40IGoaOXACRf0a0DfGJpqcqahRtcs'  # Replace with your Bot Token
 
-bot = Client("my_bot", bot_token=TOKEN, api_id=API_ID, api_hash=API_HASH)
+bot = Client("my_bot11", bot_token=TOKEN, api_id=API_ID, api_hash=API_HASH)
 
 # Group chat ID where the reminder system should work
 GROUP_CHAT_ID = -1001289294178  # Replace with the actual group chat ID
@@ -46,34 +46,13 @@ async def remind_most_active_user():
     user_id, first_name, message_count = get_most_active_user()
     total_messages = get_total_messages()
     if user_id:
-        reminder_message = (
-            f"[{first_name}](tg://user?id={user_id}), you’ve sent {message_count} messages! "
-            f"Out of the total {total_messages} messages sent in this group. Go touch grass! 🌱"
-        )
-
-        # Check if the message length exceeds the limit (4096 characters)
-        if len(reminder_message) > 4096:
-            # If it exceeds the limit, split the message
-            while len(reminder_message) > 4096:
-                await bot.send_message(
-                    chat_id=GROUP_CHAT_ID,
-                    text=reminder_message[:4096],
-                    parse_mode=ParseMode.MARKDOWN
-                )
-                reminder_message = reminder_message[4096:]
-            if reminder_message:
-                await bot.send_message(
-                    chat_id=GROUP_CHAT_ID,
-                    text=reminder_message,
-                    parse_mode=ParseMode.MARKDOWN
-                )
-        else:
-            # Send the message in one go if within the limit
-            await bot.send_message(
-                chat_id=GROUP_CHAT_ID,
-                text=reminder_message,
-                parse_mode=ParseMode.MARKDOWN
+        await bot.send_message(
+            chat_id=GROUP_CHAT_ID,
+            text=(
+                f"[{first_name}](tg://user?id={user_id}), you’ve sent {message_count} messages! "
+                f"Out of the total {total_messages} messages sent in this group. Go touch grass! 🌱"
             )
+        )
     else:
         await bot.send_message(
             chat_id=GROUP_CHAT_ID,
