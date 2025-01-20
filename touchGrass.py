@@ -1,9 +1,7 @@
 import logging
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
-from datetime import datetime, timedelta
 import asyncio
-import time
 
 # Set up logging to help with debugging
 logging.basicConfig(level=logging.INFO)
@@ -65,29 +63,28 @@ async def remind_most_active_user():
     global group_message_data
     group_message_data = {}
 
-# Function to start the reminder every 1 minute
+# Function to start the reminder every 30 minutes (1800 seconds)
 async def start_reminder():
     while True:
         await remind_most_active_user()
-        await asyncio.sleep(60)  # 1 minute in seconds
-
-# Function to handle bot start and retry if time sync fails
-async def start_bot():
-    retry_count = 3  # Max retry attempts for time sync issue
-    for _ in range(retry_count):
-        try:
-            await bot.start()
-            break  # Successfully started, exit the loop
-        except pyrogram.errors.BadMsgNotification:
-            logging.error("Time synchronization failed, retrying...")
-            time.sleep(5)  # Wait for 5 seconds before retrying
+        await asyncio.sleep(1800)  # 30 minutes in seconds
 
 # Start reminder when the bot is added to the group
 @bot.on_message(filters.new_chat_members & filters.chat(GROUP_CHAT_ID))
 async def new_member_handler(client, message):
-    await bot.send_message(message.chat.id, "Reminder system started! Most active users will be reminded every minute.")
+    await bot.send_message(message.chat.id, "Reminder system started! Most active users will be reminded every 30 minutes.")
     asyncio.create_task(start_reminder())
+
+# Start the bot with retry mechanism
+async def start_bot():
+    while True:
+        try:
+            await bot.start()
+            break  # Exit the loop if the bot starts successfully
+        except Exception as e:
+            logging.error(f"Error starting bot: {e}")
+            await asyncio.sleep(5)  # Wait before retrying
 
 # Start the bot
 if __name__ == '__main__':
-    asyncio.run(start_bot())  # Start the bot with retry mechanism
+    asyncio.run(start_bot())
