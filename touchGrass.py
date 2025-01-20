@@ -2,6 +2,7 @@ import logging
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 import asyncio
+import re
 
 # Set up logging to help with debugging
 logging.basicConfig(level=logging.INFO)
@@ -46,45 +47,63 @@ async def remind_most_active_user():
     user_id, first_name, message_count = get_most_active_user()
     total_messages = get_total_messages()
     if user_id:
-        await bot.send_message(
-            chat_id=GROUP_CHAT_ID,
-            text=(
-                f"[{first_name}](tg://user?id={user_id}), you’ve sent {message_count} messages! "
-                f"Out of the total {total_messages} messages sent in this group. Go touch grass! 🌱"
-            ),
-            parse_mode=ParseMode.MARKDOWN  # Use ParseMode.MARKDOWN
+        # Prepare the reminder message
+        reminder_message = (
+            f"[{first_name}](tg://user?id={user_id}), you’ve sent {message_count} messages! "
+            f"Out of the total {total_messages} messages sent in this group. Go touch grass! 🌱"
         )
+        # Escape special characters to avoid markdown issues
+        reminder_message = escape_markdown(reminder_message)
+
+        # Check if the message length exceeds the limit (4096 characters)
+        if len(reminder_message) > 4096:
+            # If it exceeds the limit, split the message
+            while len(reminder_message) > 4096:
+                await bot.send_message(
+                    chat_id=GROUP_CHAT_ID,
+                    text=reminder_message[:4096],
+                    parse_mode=ParseMode.MARKDOWN
+                )
+                reminder_message = reminder_message[4096:]
+            if reminder_message:
+                await bot.send_message(
+                    chat_id=GROUP_CHAT_ID,
+                    text=reminder_message,
+                    parse_mode=ParseMode.MARKDOWN
+                )
+        else:
+            # Send the message in one go if within the limit
+            await bot.send_message(
+                chat_id=GROUP_CHAT_ID,
+                text=reminder_message,
+                parse_mode=ParseMode.MARKDOWN
+            )
     else:
         await bot.send_message(
             chat_id=GROUP_CHAT_ID,
             text="No active users to remind right now."
         )
-    # Reset the message data
+    # Reset the message data after sending the reminder
     global group_message_data
     group_message_data = {}
 
-# Function to start the reminder every 30 minutes (1800 seconds)
+# Function to escape special characters in the markdown message
+def escape_markdown(text):
+    # Escape special characters for markdown formatting
+    return re.sub(r'([_\*[\]()~`>#+-=|{}.!])', r'\\\1', text)
+
+# Function to start the reminder every 1 minute
 async def start_reminder():
     while True:
         await remind_most_active_user()
-        await asyncio.sleep(1800)  # 30 minutes in seconds
+        await asyncio.sleep(60)  # 1 minute in seconds
 
 # Start reminder when the bot is added to the group
 @bot.on_message(filters.new_chat_members & filters.chat(GROUP_CHAT_ID))
 async def new_member_handler(client, message):
-    await bot.send_message(message.chat.id, "Reminder system started! Most active users will be reminded every 30 minutes.")
+    await bot.send_message(message.chat.id, "Reminder system started! Most active users will be reminded every minute.")
     asyncio.create_task(start_reminder())
-
-# Start the bot with retry mechanism
-async def start_bot():
-    while True:
-        try:
-            await bot.start()
-            break  # Exit the loop if the bot starts successfully
-        except Exception as e:
-            logging.error(f"Error starting bot: {e}")
-            await asyncio.sleep(5)  # Wait before retrying
 
 # Start the bot
 if __name__ == '__main__':
-    asyncio.run(start_bot())
+    bot.run()
